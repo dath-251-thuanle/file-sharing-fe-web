@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { authApi } from "@/lib/api/auth";
-import { setAccessToken, setCurrentUser } from "@/lib/api/client";
+import { setAccessToken, setCurrentUser } from "@/lib/api/helper";
 
 export default class LoginPage extends Component {
     render() {
@@ -25,8 +25,8 @@ export default class LoginPage extends Component {
                 //   router.push("/");
 
                 if (!("requireTOTP" in res)) {
-                    setAccessToken(res.accessToken);
-                    setCurrentUser(res.user);
+                    // setAccessToken(res.accessToken);
+                    // setCurrentUser(res.user);
                     
                     toast.success("Đăng nhập thành công!");
 

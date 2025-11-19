@@ -1,4 +1,4 @@
-import api from "./client";
+import { adminClient } from "@/lib/api/client";
 
 export interface SystemPolicy {
   id: number;
@@ -30,14 +30,14 @@ export interface CleanupResponse {
 
 export const adminApi = {
   getPolicy(): Promise<SystemPolicy> {
-    return api.get<SystemPolicy>("/admin/policy");
+    return adminClient.get<SystemPolicy>("/admin/policy");
   },
 
   updatePolicy(payload: SystemPolicyUpdate): Promise<UpdatePolicyResponse> {
-    return api.patch<UpdatePolicyResponse>("/admin/policy", payload);
+    return adminClient.patch<UpdatePolicyResponse>("/admin/policy", payload);
   },
 
   cleanupExpiredFiles(): Promise<CleanupResponse> {
-    return api.post<CleanupResponse>("/admin/cleanup");
+    return adminClient.post<CleanupResponse>("/admin/cleanup");
   },
 };

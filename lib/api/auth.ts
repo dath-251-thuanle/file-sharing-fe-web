@@ -1,4 +1,4 @@
-import api from "./client";
+import { authClient } from "./client";
 
 export type LoginRequest = {
   email: string;
@@ -27,5 +27,5 @@ export type LoginResponse = LoginSuccessResponse | TOTPRequiredResponse;
 
 export const authApi = {
   login: (payload: LoginRequest) =>
-    api.post<LoginResponse>("/auth/login", payload),
+    authClient.post<LoginResponse>("/auth/login", payload),
 };
