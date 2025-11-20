@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-
+import { useParams } from "next/navigation";
 // Dữ liệu giả lập (hard-code)
 const mockMeta = {
     id: "abc123xyz",
@@ -15,9 +15,9 @@ const mockMeta = {
     uploadedBy: "me.dev"
 };
 
-export default function Page({ params }: { params: { token: string } }) {
-    const { token } = params;
-
+export default function Page() {
+    const params = useParams();
+    const { token } = params as { token: string };
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
