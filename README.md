@@ -22,11 +22,13 @@ Công việc được chia theo các module chức năng chính. Mỗi thành vi
 
 | STT | Module | Người Phụ Trách | Chi Tiết Nhiệm Vụ & Logic Frontend | API Endpoints |
 | :-- | :--- | :--- | :--- | :--- |
-| **1** | **Auth & TOTP** | **Bảo Minh** | - **Login:** Xử lý flow đăng nhập thường & đăng nhập 2 bước (khi server trả về `requireTOTP: true`).<br>- **Register:** Form đăng ký validation.<br>- **TOTP Setup:** Hiển thị QR Code (base64 từ API), xác thực mã OTP để kích hoạt 2FA.<br>- **Lưu trữ:** Quản lý Token (JWT) trong LocalStorage/Cookies. | `/api/auth/register`<br>`/api/auth/login`<br>`/api/auth/login/totp`<br>`/api/auth/totp/setup`<br>`/api/auth/totp/verify` |
-| **2** | **User Dashboard** | **Minh Quan** | - **Danh sách file:** Hiển thị dạng bảng/grid, tích hợp phân trang (`page`, `limit`).<br>- **Bộ lọc:** Filter theo trạng thái (`active`, `expired`, `pending`).<br>- **Xử lý UI:** Hiển thị thời gian còn lại (hoursRemaining), nút Copy Link, nút Xóa file.<br>- **Error handling:** Xử lý khi token hết hạn (logout user). | `/api/files/my`<br>`/api/files/:id` (DELETE) |
-| **3** | **Upload File** | **Khánh** | - **Form Upload:** Xử lý Multipart/form-data.<br>- **Cấu hình nâng cao:**<br>  + Toggle Password input.<br>  + Date Picker cho `AvailableFrom` & `AvailableTo` (Validate logic: From \< To).<br>  + Nhập danh sách email (`sharedWith`).<br>  + Checkbox `EnableTOTP`.<br>- **Validation:** Check file size, extension trước khi gửi. | `/api/files/upload` |
-| **4** | **Access & Download** | **Minh Thức** | - **Trang Download (`/f/:token`):** Gọi API lấy metadata file.<br>- **Xử lý trạng thái File:**<br>  + 🟢 Active: Hiện nút download.<br>  + 🟡 Pending (423): Hiện đồng hồ đếm ngược/thông báo chưa đến giờ.<br>  + 🔴 Expired (410): Hiện thông báo file đã bị xóa.<br>- **Bảo mật:** Popup nhập Password hoặc TOTP code nếu file yêu cầu.<br>- **Download:** Gọi API download với headers/params phù hợp. | `/api/files/:shareToken`<br>`/api/files/:shareToken/download` |
-| **5** | **Admin System** | **Trung Kiên** | - **Admin Dashboard:** Trang riêng cho Admin (cần check Role).<br>- **System Policy:** Xem và chỉnh sửa cấu hình hệ thống (Max file size, Max validity days...).<br>- **Cleanup:** UI để trigger thủ công lệnh dọn dẹp file rác (nếu cần demo).<br>- **Interceptor:** Cấu hình Axios Interceptor chung cho toàn team (xử lý đính kèm Bearer Token tự động). | `/api/admin/policy`<br>`/api/admin/cleanup` |
+| **1** | **Auth & TOTP** | **Bảo Minh** | - **Login:** Xử lý flow đăng nhập thường & đăng nhập 2 bước (check `requireTOTP: true`).<br>- **Register:** Form đăng ký validation.<br>- **TOTP Setup:** Hiển thị QR Code, xác thực mã OTP kích hoạt.<br>- **Lưu trữ:** Quản lý Token/Session trong LocalStorage/Cookies. | `/api/auth/register`<br>`api/auth/login`<br>`api/auth/login/totp`<br>`api/auth/totp/setup`<br>`api/auth/totp/verify` |
+| **2** | **User Dashboard** | **Bảo Minh** | - **Danh sách file:** Hiển thị dạng bảng, phân trang (`page`, `limit`).<br>- **Bộ lọc:** Filter file theo trạng thái (`active`, `expired`, `pending`).<br>- **Xử lý UI:** Hiển thị `hoursRemaining`, nút Copy Link, nút Xóa file.<br>- **State Management:** Đồng bộ trạng thái khi user xóa file hoặc logout. | `/api/files/my`<br>`/api/files/:id` (DELETE) |
+| **3** | **Upload File** | **Khánh** | - **Form Upload:** Xử lý Multipart/form-data.<br>- **Cấu hình:** Toggle Password, Date Picker (`AvailableFrom` \< `AvailableTo`), nhập email share.<br>- **Validation:** Check file size, extension trước khi upload.<br>- **UI/UX:** Hiển thị progress bar khi upload. | `/api/files/upload` |
+| **4** | **Access & Download** | **Minh Thức** | - **Trang Download (`/f/:token`):** Gọi API lấy metadata.<br>- **UI Trạng thái:**<br>  + 🟢 Active: Hiện nút download.<br>  + 🟡 Pending: Hiện đồng hồ đếm ngược.<br>  + 🔴 Expired: Hiện thông báo lỗi.<br>- **Security:** Popup nhập Password/TOTP nếu file yêu cầu.<br>- **Action:** Gọi API download (xử lý Blob/Stream). | `/api/files/:shareToken`<br>`/api/files/:shareToken/download` |
+| **5** | **Admin System** | **Trung Kiên** | - **Admin Dashboard:** Trang quản trị (Check Role Admin).<br>- **System Policy:** Cấu hình hệ thống (Max size, expire days).<br>- **Cleanup:** UI trigger dọn dẹp file rác.<br>- **Global Config:** Setup Axios Interceptor (gắn Bearer Token tự động cho toàn app). | `/api/admin/policy`<br>`/api/admin/cleanup` |
+
+Bạn Minh Quân xin rút khỏi nhóm.
 
 -----
 
@@ -39,15 +41,20 @@ app/
 ├── (auth)/                 # Route Group cho Authentication (Bảo Minh)
 │   ├── login/page.tsx
 │   ├── register/page.tsx
-│   └── totp-setup/page.tsx
-├── (dashboard)/            # Route Group cho User đã login (Minh Quan)
-│   ├── dashboard/page.tsx
-│   └── my-files/page.tsx
+│   └── totp-setup
+│       ├── page.tsx
+│       └── layout.tsx
+├── dashboard/              # Route Group cho User đã login (Bảo Minh)
+│   ├── page.tsx
 ├── (public)/               # Public Access (Minh Thức)
 │   └── f/
-│       └── [shareToken]/page.tsx
+│       └── [token]/page.tsx
 ├── admin/                  # Admin Routes (Trung Kiên)
-│   └── settings/page.tsx
+│   ├── cleanup/page.tsx
+│   ├── policy/page.tsx
+│   ├── templates/notadmin.tsx
+│   ├── page.tsx
+│   └── layout.tsx
 ├── upload/                 # Upload Page (Khánh)
 │   └── page.tsx
 ├── layout.tsx              # Root Layout
