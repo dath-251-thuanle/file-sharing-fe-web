@@ -1,37 +1,37 @@
+# (New pls read) schemas
+Nhất quán chung thư viện schema theo docs openapi mới của Minh viết trong thư mục `@/docs/`. Không bỏ các schema trong component-specific api library, tập trung hết ở `@/lib/components/schemas.ts`.
+
 # Shared axios interceptor
 Mục đích: đồng nhất việc request xuống backend, thay vì định nghĩa tạo request trên page.
 
 ## client.ts
 
-### Helper với localStorage
-
+### Helper
+Các phương thức truy cập client side chung, hạn chế tự check trong các page.
 ```
 function safeGetItem(key: string): string | null;
-function safeSetItem(key: string, value: string): void;
-function safeRemoveItem(key: string): void;
+function safeSetItem(key: string, value: string);
+function safeRemoveItem(key: string);
 ```
 
+Các function export:
+```
+function getAccessToken(): string | null;
+function setAccessToken(token: string);
+function clearAuth();
+function getCurrentUser(): User | null;
+function setCurrentUser(user: User);
+```
+
+Các function check cơ bản:
+```
+function _isLoggedIn(): boolean;
+function _isAdmin(): boolean;
+function isFormData(value: unknown): value is FormData;
+```
 Local storage này sẽ lưu ở client side, nạp lên rút xuống có nghĩa là server đang kêu client tự đưa, đổi.
 
-### Auth storage
-
-Dùng để đựng đống token server giao. Xài chung hết cho dễ.
-
-```
-export function getAccessToken(): string | null;
-export function setAccessToken(token: string): void;
-export function clearAuth(): void;
-
-export function getCurrentUser<T = any>(): T | null;
-export function setCurrentUser(user: any): void;
-
-// currently return true, change to debug
-export function _isLoggedIn(): boolean;
-export function _isAdmin(): boolean;
-```
-
 ### Axios instance
-
 Dùng làm người giao tiếp với backend cho front end. Hạn chế bloat code page bằng implement fetch ở thư mục /lib/api (có ví dụ ở admin.ts)
 
 ```

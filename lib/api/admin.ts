@@ -1,32 +1,5 @@
 import { adminClient } from "@/lib/api/client";
-
-export interface SystemPolicy {
-  id: number;
-  maxFileSizeMB: number;
-  minValidityHours: number;
-  maxValidityDays: number;
-  defaultValidityDays: number;
-  requirePasswordMinLength: number;
-}
-
-export interface SystemPolicyUpdate {
-  maxFileSizeMB?: number;
-  minValidityHours?: number;
-  maxValidityDays?: number;
-  defaultValidityDays?: number;
-  requirePasswordMinLength?: number;
-}
-
-export interface UpdatePolicyResponse {
-  message: string;
-  policy: SystemPolicy;
-}
-
-export interface CleanupResponse {
-  message: string;
-  deletedFiles: number;
-  timestamp: string;
-}
+import { SystemPolicy, SystemPolicyUpdate, UpdatePolicyResponse, CleanupResponse } from "../components/schemas";
 
 export const adminApi = {
   getPolicy(): Promise<SystemPolicy> {

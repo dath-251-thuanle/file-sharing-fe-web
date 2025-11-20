@@ -1,4 +1,4 @@
-import { User } from "@/lib/api/auth";
+import { User } from "@/lib/components/schemas";
 
 const ACCESS_TOKEN_KEY = "fs_access_token";
 const USER_KEY = "fs_user";
@@ -57,9 +57,10 @@ export function _isLoggedIn(): boolean {
 }
 
 export function _isAdmin(): boolean {
-    return true;
-    //   const user = getCurrentUser();
-    //   return user?.role === "admin";
+    // return true;
+    const user = getCurrentUser();
+    console.log(user);
+    return user?.role === "admin";
 }
 
 export function isFormData(value: unknown): value is FormData {

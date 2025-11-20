@@ -28,6 +28,25 @@ users = {
         "username": "jitensha",
         "email": "jitensha@hcmut.edu.vn",
         "password": "jitensha@123",
+        "role": "admin",
+        "totp_enabled": False,
+        "totp_secret": None,
+    },
+    "eenose@hcmut.edu.vn": {
+        "id": str(uuid.uuid4()),
+        "username": "eenose",
+        "email": "eenose@hcmut.edu.vn",
+        "password": "eenose@123",
+        "role": "user",
+        "totp_enabled": True,
+        "totp_secret": None,
+    },
+    "bigbluewhale@hcmut.edu.vn": {
+        "id": str(uuid.uuid4()),
+        "username": "bigbluewhale",
+        "email": "bigbluewhale@hcmut.edu.vn",
+        "password": "bigbluewhale@123",
+        "role": "user",
         "totp_enabled": False,
         "totp_secret": None,
     },
@@ -69,6 +88,14 @@ def get_current_user():
 
     return token, user
 
+def serialize_user(user: dict) -> dict:
+    return {
+        "id": user["id"],
+        "username": user["username"],
+        "email": user["email"],
+        "role": user.get("role", "user"),
+        "totpEnabled": bool(user.get("totpEnabled", False)),
+    }
 
 # temporary /auth endpoints
 @app.post("/api/auth/register")
@@ -92,6 +119,7 @@ def register():
         "email": email,
         "username": data.get("username", ""),
         "password": password,
+        "role": "user",
         "totp_enabled": False,
         "totp_secret": None,
     }
@@ -140,11 +168,7 @@ def login():
             {
                 # "requireTOTP": False,
                 "accessToken": token,
-                "user": {
-                    "id": user["id"],
-                    "email": user["email"],
-                    "username": user["username"],
-                },
+                "user": serialize_user(user),
                 "message": "Login successful (mock)",
             }
         ), 200
@@ -259,7 +283,10 @@ def logout():
     """
     token, user = get_current_user()
     if not user:
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({
+            "error": "Unauthorized",
+            "message": "No token found",
+        }), 401
 
     # Remove token from sessions
     if token in sessions:
@@ -314,7 +341,7 @@ def update_policy():
 
 @app.post("/api/admin/cleanup")
 def admin_cleanup():
-    deleted_files = 0
+    deleted_files = 100
     return jsonify(
         {
             "message": "Cleanup hoàn tất (mock)",

@@ -11,7 +11,7 @@ export default function AdminCleanupPage() {
     >
       <div className="space-y-4 rounded-xl border bg-white p-5 shadow-sm">
         <p className="text-s text-gray-600">
-          Hệ thống đã có cơ chế auto-cleanup theo schedule.
+          Hệ thống đã có cơ chế auto-cleanup theo lịch trình.
         </p>
 
         <p className="text-sm text-gray-500">

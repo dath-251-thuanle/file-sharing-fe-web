@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { adminApi, SystemPolicy, SystemPolicyUpdate } from "@/lib/api/admin";
+import { SystemPolicy, SystemPolicyUpdate } from "@/lib/components/schemas"
+import { adminApi } from "@/lib/api/admin";
 import { toast } from "sonner";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { NumberField } from "@/components/admin/NumberField";
