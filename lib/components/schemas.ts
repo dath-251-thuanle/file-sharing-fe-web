@@ -92,6 +92,12 @@ export interface TotpLoginRequest {
   code: string;
 }
 
+export type ChangePasswordRequest = {
+  oldPassword?: string;
+  totpCode?: string;
+  newPassword: string;
+};
+
 // =====================
 // file upload
 // =====================

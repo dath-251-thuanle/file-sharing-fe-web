@@ -4,16 +4,29 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, File as FileType, UserProfileResponse } from "@/lib/components/schemas";
-import { getUserProfile, disableTotp } from "@/lib/api/auth";
-import { ShieldCheck, ShieldOff, Loader, KeyRound } from "lucide-react";
+import { getUserProfile, disableTotp, changePassword } from "@/lib/api/auth";
+import { deleteFile } from "@/lib/api/file";
+import { ShieldCheck, ShieldOff, Loader, KeyRound, Trash2 } from "lucide-react";
+import { setCurrentUser } from "@/lib/api/helper";
+import { toast } from "sonner";
+import { ChangePasswordRequest } from "@/lib/components/schemas";
 
 export default function Dashboard() {
   const [userProfile, setUserProfile] = useState<UserProfileResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // TOTP Disable State
   const [showTotpInput, setShowTotpInput] = useState(false);
   const [totpCode, setTotpCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Change Password Modal State
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changePasswordTotp, setChangePasswordTotp] = useState("");
+  const [useTotpForPasswordChange, setUseTotpForPasswordChange] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const router = useRouter();
 
@@ -22,6 +35,7 @@ export default function Dashboard() {
       try {
         const profile = await getUserProfile();
         setUserProfile(profile);
+        setCurrentUser(profile.user);
       } catch (err: any) {
         if (err.message.includes("Unauthorized")) {
           router.push("/login");
@@ -38,7 +52,7 @@ export default function Dashboard() {
 
   const handleDisableTotp = async () => {
     if (!totpCode) {
-      alert("Please enter the TOTP code.");
+      toast.error("Please enter the TOTP code.");
       return;
     }
     setIsSubmitting(true);
@@ -49,11 +63,77 @@ export default function Dashboard() {
       setUserProfile(profile);
       setShowTotpInput(false);
       setTotpCode("");
-      alert("TOTP has been disabled successfully.");
+      toast.success("TOTP has been disabled successfully.");
     } catch (err: any) {
-      alert(`Failed to disable TOTP: ${err.message}`);
+      toast.error(`Failed to disable TOTP: ${err.message}`);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (fileId: string) => {
+    if (window.confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
+      try {
+        await deleteFile(fileId);
+        toast.success("File deleted successfully");
+        setUserProfile((prev) => {
+          if (!prev) return null;
+          const newFiles = prev.files.filter((file) => file.id !== fileId);
+          // Recalculate summary
+          const summary = {
+            activeFiles: newFiles.filter(f => f.status === 'active').length,
+            pendingFiles: newFiles.filter(f => f.status === 'pending').length,
+            expiredFiles: newFiles.filter(f => f.status === 'expired').length,
+            deletedFiles: prev.summary.deletedFiles + 1, // Or fetch summary again
+          };
+          return { ...prev, files: newFiles, summary };
+        });
+      } catch (err: any) {
+        toast.error(`Failed to delete file: ${err.message}`);
+      }
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const payload: ChangePasswordRequest = { newPassword };
+      if (useTotpForPasswordChange) {
+        if (!changePasswordTotp) {
+          toast.error("Please enter the TOTP code.");
+          setIsChangingPassword(false);
+          return;
+        }
+        payload.totpCode = changePasswordTotp;
+      } else {
+        if (!oldPassword) {
+          toast.error("Please enter your old password.");
+          setIsChangingPassword(false);
+          return;
+        }
+        payload.oldPassword = oldPassword;
+      }
+
+      await changePassword(payload);
+      toast.success("Password changed successfully.");
+      setShowChangePasswordModal(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setChangePasswordTotp("");
+    } catch (err: any) {
+      toast.error(`Failed to change password: ${err.message}`);
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
@@ -81,7 +161,16 @@ export default function Dashboard() {
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h1 className="text-2xl font-bold mb-4">Welcome, {user.username}!</h1>
         <p className="text-gray-600">Email: {user.email}</p>
-        <p className="text-gray-600">Role: {user.role}</p>
+        <p className="text-gray-600 mb-6">Role: {user.role}</p>
+
+        <div className="flex items-center gap-4">
+            <button
+                onClick={() => setShowChangePasswordModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-gray-600 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+                Change Password
+            </button>
+        </div>
 
         <div className="mt-6">
           <h2 className="text-lg font-semibold mb-2">Two-Factor Authentication (2FA)</h2>
@@ -104,10 +193,8 @@ export default function Dashboard() {
                 <ShieldOff className="h-5 w-5 mr-1" />
                 2FA is Not Enabled
               </span>
-              <Link href="/totp-setup">
-                <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Enable 2FA
-                </button>
+              <Link href="/totp-setup" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Enable 2FA
               </Link>
             </div>
           )}
@@ -125,7 +212,7 @@ export default function Dashboard() {
                             id="totp-code"
                             value={totpCode}
                             onChange={(e) => setTotpCode(e.target.value)}
-                            className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            className="block w-full rounded-md border-gray-300 pl-10 focus:border-indigo-500 focus:ring-indigo-500 lg:text-lg"
                             placeholder="6-digit code"
                             maxLength={6}
                         />
@@ -172,13 +259,18 @@ export default function Dashboard() {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File Name</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {files.length > 0 ? (
                 files.map((file) => (
                   <tr key={file.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{file.fileName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <Link href={`/f/${file.shareToken}`} className="text-indigo-600 hover:text-indigo-900">
+                        {file.fileName}
+                      </Link>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                             file.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -189,17 +281,108 @@ export default function Dashboard() {
                         </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(file.createdAt).toLocaleString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button onClick={() => handleDelete(file.id)} className="text-red-600 hover:text-red-900">
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">You have not uploaded any files yet.</td>
+                  <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">You have not uploaded any files yet.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {showChangePasswordModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Change Password</h2>
+            
+            {user.totpEnabled && (
+              <div className="flex items-center justify-center mb-4">
+                <label className="mr-4">Use: </label>
+                <button 
+                  onClick={() => setUseTotpForPasswordChange(false)}
+                  className={`px-4 py-2 text-sm rounded-l-md ${!useTotpForPasswordChange ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+                >
+                  Old Password
+                </button>
+                <button 
+                  onClick={() => setUseTotpForPasswordChange(true)}
+                  className={`px-4 py-2 text-sm rounded-r-md ${useTotpForPasswordChange ? 'bg-indigo-600 text-white' : 'bg-gray-200'}`}
+                >
+                  TOTP Code
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {!useTotpForPasswordChange ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Old Password</label>
+                  <input
+                    type="password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-2"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">TOTP Code</label>
+                  <input
+                    type="text"
+                    value={changePasswordTotp}
+                    onChange={(e) => setChangePasswordTotp(e.target.value)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-2"
+                    maxLength={6}
+                  />
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg p-2"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                onClick={() => setShowChangePasswordModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:bg-gray-400"
+              >
+                {isChangingPassword && <Loader className="animate-spin h-4 w-4 mr-2" />}
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

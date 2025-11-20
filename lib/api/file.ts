@@ -1,4 +1,4 @@
-import { uploadClient } from "@/lib/api/client";
+import { uploadClient, adminClient } from "@/lib/api/client";
 import type { FileUploadResponse, UploadedFileSummary, TOTPSetup } from "@/lib/components/schemas";
 
 export class ApiError extends Error {
@@ -124,8 +124,14 @@ async function uploadFile(formData: FormData): Promise<FileUploadResponse> {
   }
 }
 
+async function deleteFile(fileId: string): Promise<any> {
+    return adminClient.delete(`/files/${fileId}`);
+}
+
 export const fileApi = {
   upload: uploadFile,
+  delete: deleteFile,
 };
 
-export { uploadFile };
+export { uploadFile, deleteFile };
+

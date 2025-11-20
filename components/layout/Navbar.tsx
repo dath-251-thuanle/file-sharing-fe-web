@@ -2,19 +2,39 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { HardDrive } from "lucide-react";
 import { _isAdmin, _isLoggedIn } from "@/lib/api/helper";
+import { logout } from "@/lib/api/auth";
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setIsLoggedIn(_isLoggedIn());
     setIsAdmin(_isAdmin());
     setMounted(true);
+
+    const handleStorageChange = () => {
+      setIsLoggedIn(_isLoggedIn());
+      setIsAdmin(_isAdmin());
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setIsAdmin(false);
+    router.push("/login");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -30,7 +50,6 @@ export default function Navbar() {
           Upload Mới
         </Link>
         
-        {/* Only render dynamic logic after mount to prevent Hydration Error */}
         {mounted && isLoggedIn ? (
           <>
             {isAdmin && (
@@ -45,9 +64,14 @@ export default function Navbar() {
             <Link href="/dashboard" className="text-sm font-medium text-gray-900 hover:text-gray-700">
               Dashboard
             </Link>
+            <button 
+              onClick={handleLogout}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+            >
+              Logout
+            </button>
           </>
         ) : (
-          // Default view (rendered on Server and initial Client load)
           <>
             <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
               Đăng nhập

@@ -41,10 +41,8 @@ const errorResponseInterceptor = (error: AxiosError<ErrorResponse>) => {
     if (status === 401) {
       // Token expired handling
       clearAuth();
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) {
-        toast.error("Session expired. Please login again.");
-        window.location.href = "/auth/login";
-      }
+      toast.error("Session expired. Please login again.");
+      window.location.href = "/login";
     } else if (status === 403) {
       toast.error(data?.message || "Access denied.");
     } else if (status === 413) {

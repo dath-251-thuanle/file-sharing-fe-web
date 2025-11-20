@@ -1,4 +1,5 @@
 import { authClient, adminClient } from "./client";
+import { clearAuth } from "./helper";
 import { 
   LoginRequest, 
   LoginResponse, 
@@ -9,12 +10,13 @@ import {
   TotpVerifyResponse, 
   TotpLoginRequest, 
   LoginSuccessResponse,
-  UserProfileResponse
+  UserProfileResponse,
+  ChangePasswordRequest
 } from "../components/schemas";
 
 export const login = (payload: LoginRequest) =>
   authClient.post<LoginResponse>("/auth/login", payload);
-
+  
 export const register = (payload: RegisterRequest) =>
   authClient.post<RegisterSuccessResponse>("/auth/register", payload);
 
@@ -32,3 +34,10 @@ export const getUserProfile = () =>
 
 export const disableTotp = (code: string) =>
   adminClient.post<any>("/auth/totp/disable", { code });
+
+export const changePassword = (payload: ChangePasswordRequest) =>
+  adminClient.post<any>("/auth/password/change", payload);
+
+export const logout = () => {
+  clearAuth();
+};
