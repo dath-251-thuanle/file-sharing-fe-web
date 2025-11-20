@@ -12,6 +12,7 @@ export type User = {
   username: string;
   email: string;
   role: UserRole;
+  totpEnabled: boolean;
 };
 
 export type File = {

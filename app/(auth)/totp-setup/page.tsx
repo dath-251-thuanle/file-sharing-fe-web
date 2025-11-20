@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { authApi } from "@/lib/api/auth";
+import { setupTotp, verifyTotp } from "@/lib/api/auth";
 import { getAccessToken } from "@/lib/api/helper";
 import TotpSetupForm,{ TotpSetupFormData } from "@/components/auth/TotpSetupForm";
 
@@ -34,7 +34,7 @@ export default function TotpSetupPage() {
 
       try {
         setLoading(true);
-        const data = await authApi.setupTotp();
+        const data = await setupTotp();
         setQrCode(data.totpSetup.qrCode);
         setSecret(data.totpSetup.secret);
         setError(null);
@@ -58,10 +58,10 @@ export default function TotpSetupPage() {
     setError(null);
 
     try {
-      const res = await authApi.verifyTotp({ code: formData.totpCode });
+      const res = await verifyTotp({ code: formData.totpCode });
       if (res.totpEnabled) {
         toast.success("Two-Factor Authentication enabled successfully!");
-        router.push("/"); // Redirect to dashboard or home
+        router.push("/dashboard"); // Redirect to dashboard or home
       } else {
         throw new Error(res.message || "Verification failed. Please try again.");
       }

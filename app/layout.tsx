@@ -21,7 +21,7 @@ export default class RootLayout extends Component<{ children: React.ReactNode }>
             {children}
           </main>
           <Footer />
-          <Toaster position="top-right" richColors />
+          <Toaster position="top-center" richColors />
         </body>
       </html>
     );

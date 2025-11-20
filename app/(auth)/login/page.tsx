@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { authApi } from "@/lib/api/auth";
+import { login } from "@/lib/api/auth";
 import { setAccessToken, setCurrentUser } from "@/lib/api/helper";
 import LoginForm, { LoginFormData } from "@/components/auth/LoginForm";
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
         const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             try {
-                const res = await authApi.login({
+                const res = await login({
                     email: formData.email,
                     password: formData.password,
                 });
@@ -34,7 +34,7 @@ export default function LoginPage() {
                     setAccessToken(res.accessToken);
                     setCurrentUser(res.user);
                     toast.success("Đăng nhập thành công!");
-                    router.push("/");
+                    router.push("/dashboard");
                 }
                 else {
                     toast.error("Invalid credentials. Please try again.");

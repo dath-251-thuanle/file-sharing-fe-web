@@ -1,14 +1,34 @@
 import { authClient, adminClient } from "./client";
-import { LoginRequest, LoginResponse, RegisterRequest, RegisterSuccessResponse, TotpSetupResponse, TotpVerifyRequest, TotpVerifyResponse, TotpLoginRequest, LoginSuccessResponse } from "../components/schemas";
+import { 
+  LoginRequest, 
+  LoginResponse, 
+  RegisterRequest, 
+  RegisterSuccessResponse, 
+  TotpSetupResponse, 
+  TotpVerifyRequest, 
+  TotpVerifyResponse, 
+  TotpLoginRequest, 
+  LoginSuccessResponse,
+  UserProfileResponse
+} from "../components/schemas";
 
-export const authApi = {
-  login: (payload: LoginRequest) =>
-    authClient.post<LoginResponse>("/auth/login", payload),
-  register: (payload: RegisterRequest) =>
-    authClient.post<RegisterSuccessResponse>("/auth/register", payload),
-  setupTotp: () => adminClient.post<TotpSetupResponse>("/auth/totp/setup", {}),
-  verifyTotp: (payload: TotpVerifyRequest) =>
-    adminClient.post<TotpVerifyResponse>("/auth/totp/verify", payload),
-  loginTotp: (payload: TotpLoginRequest) =>
-    authClient.post<LoginSuccessResponse>("/auth/login/totp", payload),
-};
+export const login = (payload: LoginRequest) =>
+  authClient.post<LoginResponse>("/auth/login", payload);
+
+export const register = (payload: RegisterRequest) =>
+  authClient.post<RegisterSuccessResponse>("/auth/register", payload);
+
+export const setupTotp = () => 
+  adminClient.post<TotpSetupResponse>("/auth/totp/setup", {});
+
+export const verifyTotp = (payload: TotpVerifyRequest) =>
+  adminClient.post<TotpVerifyResponse>("/auth/totp/verify", payload);
+
+export const loginTotp = (payload: TotpLoginRequest) =>
+  authClient.post<LoginSuccessResponse>("/auth/login/totp", payload);
+
+export const getUserProfile = () => 
+  adminClient.get<UserProfileResponse>("/user");
+
+export const disableTotp = (code: string) =>
+  adminClient.post<any>("/auth/totp/disable", { code });

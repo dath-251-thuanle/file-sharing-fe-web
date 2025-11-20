@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 import base64
 from werkzeug.utils import secure_filename
@@ -101,8 +101,31 @@ def serialize_user(user: dict) -> dict:
         "username": user["username"],
         "email": user["email"],
         "role": user.get("role", "user"),
-        "totpEnabled": bool(user.get("totpEnabled", False)),
+        "totpEnabled": bool(user.get("totp_enabled", False)),
     }
+
+def get_file_status(file_meta: dict) -> str:
+    """
+    Determines the status of a file based on its availableFrom and availableTo dates.
+    """
+    now = datetime.utcnow()
+    available_from_str = file_meta.get("availableFrom")
+    available_to_str = file_meta.get("availableTo")
+
+    available_from = None
+    available_to = None
+
+    if available_from_str:
+        available_from = datetime.fromisoformat(available_from_str.replace('Z', '+00:00'))
+    if available_to_str:
+        available_to = datetime.fromisoformat(available_to_str.replace('Z', '+00:00'))
+
+    if available_from and now < available_from:
+        return "pending"
+    if available_to and now > available_to:
+        return "expired"
+    
+    return "active"
 
 # temporary /auth endpoints
 @app.post("/api/auth/register")
@@ -281,6 +304,41 @@ def totp_verify():
     ), 200
 
 
+@app.post("/api/auth/totp/disable")
+def totp_disable():
+    """
+    Mock TOTP disable.
+    Requires Authorization: Bearer <token>.
+    Body: { "code": string }
+    Accepts code "123456" for everyone.
+    """
+    token, user = get_current_user()
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json(silent=True) or {}
+    code = data.get("code")
+
+    if not code:
+        return jsonify({"error": "code is required"}), 400
+
+    if not user.get("totp_enabled"):
+        return jsonify({"error": "TOTP not enabled for this account"}), 400
+
+    if code != MOCK_TOTP_CODE:
+        return jsonify({"error": "Invalid TOTP code (mock: use 123456)"}), 400
+
+    user["totp_enabled"] = False
+    user["totp_secret"] = None # Clear secret on disable
+
+    return jsonify(
+        {
+            "message": "TOTP disabled successfully (mock)",
+            "totpEnabled": False,
+        }
+    ), 200
+
+
 @app.post("/api/auth/logout")
 def logout():
     """
@@ -302,6 +360,71 @@ def logout():
     return jsonify(
         {
             "message": "Logged out successfully (mock)",
+        }
+    ), 200
+
+
+@app.get("/api/user")
+def get_user_profile():
+    """
+    Mock endpoint to get a user's full profile, including files.
+    This corresponds to the UserProfileResponse in the frontend.
+    Requires Authorization: Bearer <token>.
+    """
+    token, user = get_current_user()
+    if not user:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    user_email = user["email"]
+    
+    # In a real app, this would be a database query. Here, we filter the in-memory dict.
+    user_files = [
+        file_meta for file_meta in files.values() 
+        if file_meta.get("ownerEmail") == user_email
+    ]
+
+    # Process files and calculate summary
+    serialized_files = []
+    summary = {
+        "activeFiles": 0,
+        "pendingFiles": 0,
+        "expiredFiles": 0,
+        "deletedFiles": 0 # Not implemented in this mock
+    }
+
+    for file_meta in user_files:
+        status = get_file_status(file_meta)
+        
+        # The user dashboard only needs a summary of the file
+        serialized_files.append({
+            "id": file_meta["id"],
+            "fileName": file_meta.get("filename", "N/A"),
+            "status": status,
+            "createdAt": file_meta["createdAt"],
+        })
+        
+        if status == "active":
+            summary["activeFiles"] += 1
+        elif status == "pending":
+            summary["pendingFiles"] += 1
+        elif status == "expired":
+            summary["expiredFiles"] += 1
+
+    # Mock pagination
+    total_files = len(serialized_files)
+    pagination = {
+        "currentPage": 1,
+        "totalPages": 1,
+        "totalFiles": total_files,
+        "limit": max(20, total_files), # Mock limit
+    }
+
+    return jsonify(
+        {
+            "user": serialize_user(user), # The basic User object
+            "files": serialized_files,
+            "pagination": pagination,
+            "summary": summary,
         }
     ), 200
 
