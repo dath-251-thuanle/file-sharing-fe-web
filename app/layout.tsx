@@ -1,29 +1,38 @@
-"use client";
-
-import React, { Component } from "react";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar"; // (Code ở phần Bonus bên dưới)
-import Footer from "@/components/layout/Footer"; // (Code ở phần Bonus bên dưới)
-import { Toaster } from "sonner"; // Hoặc thư viện toast bạn chọn
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default class RootLayout extends Component<{ children: React.ReactNode }> {
-  render() {
-    const { children } = this.props;
-    return (
-      <html lang="vi">
-        {/* THÊM class "antialiased bg-gray-50 text-gray-900" VÀO ĐÂY */}
-        <body className={`${inter.className} min-h-screen flex flex-col antialiased bg-gray-50 text-gray-900`}>
-          <Navbar />
-          <main className="flex-grow pt-16">
-            {children}
-          </main>
-          <Footer />
-          <Toaster position="top-center" richColors />
-        </body>
-      </html>
-    );
-  }
+export const metadata: Metadata = {
+  title: "SecureShare",
+  description: "Nền tảng chia sẻ tài liệu bảo mật",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="vi">
+      <body
+        className={`${inter.className} min-h-screen flex flex-col antialiased bg-gray-50 text-gray-900`}
+      >
+        <Navbar />
+        
+        <main className="flex-grow pt-16">
+          {children}
+        </main>
+
+        <Footer />
+        
+        {/* Toast notifications */}
+        <Toaster position="top-center" richColors />
+      </body>
+    </html>
+  );
 }
