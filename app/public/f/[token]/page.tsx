@@ -12,7 +12,7 @@ const mockMeta = {
     availableFrom: "2025-11-20T12:00:00Z",   // TEST trạng thái Pending
     passwordProtected: true,
     requiresTotp: false,
-    uploadedBy: "me.dev"             
+    uploadedBy: "me.dev"
 };
 
 export default function Page({ params }: { params: { token: string } }) {
@@ -28,7 +28,7 @@ export default function Page({ params }: { params: { token: string } }) {
 
     // Copy link
     const copyLink = () => {
-        const link = `${window.location.origin}/s/${token}`;
+        const link = `${window.location.origin}/public/f/${token}`;
         navigator.clipboard.writeText(link);
         alert("Đã copy link chia sẻ!");
     };
@@ -68,8 +68,8 @@ export default function Page({ params }: { params: { token: string } }) {
 
         }, 1000);
 
-            return () => clearInterval(timer);
-        }, [isPending]);
+        return () => clearInterval(timer);
+    }, [isPending]);
 
 
     // Download mô phỏng
