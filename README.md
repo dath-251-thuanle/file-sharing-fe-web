@@ -22,8 +22,8 @@ Công việc được chia theo các module chức năng chính. Mỗi thành vi
 
 | STT | Module | Người Phụ Trách | Chi Tiết Nhiệm Vụ & Logic Frontend | API Endpoints |
 | :-- | :--- | :--- | :--- | :--- |
-| **1** | **Auth & TOTP** | **Bảo Minh** | - **Login:** Xử lý flow đăng nhập thường & đăng nhập 2 bước (check `requireTOTP: true`).<br>- **Register:** Form đăng ký validation.<br>- **TOTP Setup:** Hiển thị QR Code, xác thực mã OTP kích hoạt.<br>- **Lưu trữ:** Quản lý Token/Session trong LocalStorage/Cookies. | `/api/auth/register`<br>`api/auth/login`<br>`api/auth/login/totp`<br>`api/auth/totp/setup`<br>`api/auth/totp/verify` |
-| **2** | **User Dashboard** | **Bảo Minh** | - **Danh sách file:** Hiển thị dạng bảng, phân trang (`page`, `limit`).<br>- **Bộ lọc:** Filter file theo trạng thái (`active`, `expired`, `pending`).<br>- **Xử lý UI:** Hiển thị `hoursRemaining`, nút Copy Link, nút Xóa file.<br>- **State Management:** Đồng bộ trạng thái khi user xóa file hoặc logout. | `/api/files/my`<br>`/api/files/:id` (DELETE) |
+| **1** | **Auth & TOTP** | **Bảo Minh** | - **Login:** Xử lý flow đăng nhập thường & đăng nhập 2 bước (check `requireTOTP: true`).<br>- **Register:** Form đăng ký validation.<br>- **TOTP Setup:** Hiển thị QR Code, xác thực mã OTP kích hoạt.<br>- **Lưu trữ:** Quản lý Token trong LocalStorage. | `/api/auth/register`<br>`/api/auth/login`<br>`/api/auth/login/totp`<br>`/api/auth/totp/setup`<br>`/api/auth/totp/verify` |
+| **2** | **User Dashboard** | **Bảo Minh** | - **Danh sách file:** Hiển thị dạng bảng, phân trang (`page`, `limit`), có nút xóa cho mỗi file.<br>- **Quản lý người dùng:** Cho phép kích hoạt và hủy kích hoạt xác thực mã OTP, đổi mật khẩu. | `/api/me`<br>`/api/files/:id` (DELETE) |
 | **3** | **Upload File** | **Khánh** | - **Form Upload:** Xử lý Multipart/form-data.<br>- **Cấu hình:** Toggle Password, Date Picker (`AvailableFrom` \< `AvailableTo`), nhập email share.<br>- **Validation:** Check file size, extension trước khi upload.<br>- **UI/UX:** Hiển thị progress bar khi upload. | `/api/files/upload` |
 | **4** | **Access & Download** | **Minh Thức** | - **Trang Download (`/f/:token`):** Gọi API lấy metadata.<br>- **UI Trạng thái:**<br>  + 🟢 Active: Hiện nút download.<br>  + 🟡 Pending: Hiện đồng hồ đếm ngược.<br>  + 🔴 Expired: Hiện thông báo lỗi.<br>- **Security:** Popup nhập Password/TOTP nếu file yêu cầu.<br>- **Action:** Gọi API download (xử lý Blob/Stream). | `/api/files/:shareToken`<br>`/api/files/:shareToken/download` |
 | **5** | **Admin System** | **Trung Kiên** | - **Admin Dashboard:** Trang quản trị (Check Role Admin).<br>- **System Policy:** Cấu hình hệ thống (Max size, expire days).<br>- **Cleanup:** UI trigger dọn dẹp file rác.<br>- **Global Config:** Setup Axios Interceptor (gắn Bearer Token tự động cho toàn app). | `/api/admin/policy`<br>`/api/admin/cleanup` |
@@ -32,7 +32,7 @@ Bạn Minh Quân xin rút khỏi nhóm.
 
 -----
 
-## 📂 Cấu Trúc Thư Mục (App Router)
+## Cấu Trúc Thư Mục (App Router)
 
 Để đảm bảo code gọn gàng và dễ merge, thống nhất cấu trúc như sau:
 
@@ -78,8 +78,8 @@ Mọi người **BẮT BUỘC** phải xử lý các mã lỗi HTTP đặc thù 
 
 ### 2\. Components & Hooks
 
-  * **API Call:** Không gọi `fetch/axios` trực tiếp trong Component. Hãy tạo file trong `src/services/` (ví dụ: `authService.ts`, `fileService.ts`).
-  * **UI Components:** Sử dụng lại các component chung trong `src/components/ui` (Button, Input, Modal...) để đồng bộ giao diện.
+  * **API Call:** Không gọi `fetch/axios` trực tiếp trong Component. Hãy tạo file trong `lib/api/` (ví dụ: `auth.ts`, `file.ts`).
+  * **UI Components:** Sử dụng lại các component chung trong `components/` (Button, Input, Modal...) để đồng bộ giao diện.
 
 ### 3\. Git Workflow & Commit Convention
 
