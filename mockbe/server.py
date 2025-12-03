@@ -666,7 +666,7 @@ def upload_file():
         "availableTo": available_to.isoformat() if available_to else None,
         "sharedWith": shared_with,
         "shareLink": share_link,
-        "createdAt": datetime.now().isoformat(),
+        "createdAt": datetime.now(timezone.utc).isoformat(),
         "totpEnabled": bool(enable_totp),
     }
 
