@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { login } from "@/lib/api/auth";
-import { setAccessToken, setCurrentUser } from "@/lib/api/helper";
+import { setAccessToken, setCurrentUser, getErrorMessage, setLoginChallengeId } from "@/lib/api/helper";
 import LoginForm, { LoginFormData } from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
@@ -28,6 +28,7 @@ export default function LoginPage() {
 
                 if ("requireTOTP" in res) {
                     // Handle TOTP verification
+                    setLoginChallengeId(res.cid);
                     router.push(`/login/totp?email=${encodeURIComponent(formData.email)}`);
                 }
                 else if ("accessToken" in res) {
@@ -40,8 +41,7 @@ export default function LoginPage() {
                     toast.error("Invalid credentials. Please try again.");
                 }
             } catch (err: any) {
-                const msg =
-                    err?.response?.data?.message || "Sai thông tin đăng nhập. Vui lòng thử lại.";
+                const msg = getErrorMessage(err, "Sai thông tin đăng nhập. Vui lòng thử lại.");
                 toast.error(msg);
             }
         };

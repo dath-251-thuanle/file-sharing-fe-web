@@ -64,6 +64,7 @@ export type LoginSuccessResponse = {
 export type TOTPRequiredResponse = {
   requireTOTP: boolean;
   message?: string;
+  cid: string;
 };
 
 export type LoginResponse = LoginSuccessResponse | TOTPRequiredResponse;
@@ -88,7 +89,7 @@ export interface TotpVerifyResponse {
 }
 
 export interface TotpLoginRequest {
-  email: string;
+  cid: string;
   code: string;
 }
 

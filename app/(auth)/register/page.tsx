@@ -7,6 +7,7 @@ import RegisterForm, {
   RegisterFormData,
 } from "@/components/auth/RegisterForm";
 import { register } from "@/lib/api/auth";
+import { getErrorMessage } from "@/lib/api/helper";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -38,8 +39,7 @@ export default function RegisterPage() {
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
         router.push("/login");
     } catch (err: any) {
-        const msg =
-            err?.response?.data?.message || "Sai thông tin đăng nhập. Vui lòng thử lại.";
+        const msg = getErrorMessage(err, "Sai thông tin đăng nhập. Vui lòng thử lại.");
         toast.error(msg);
     }
   };

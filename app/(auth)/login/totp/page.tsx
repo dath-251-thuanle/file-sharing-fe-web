@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { loginTotp } from "@/lib/api/auth";
-import { setAccessToken, setCurrentUser } from "@/lib/api/helper";
+import { setAccessToken, setCurrentUser, getErrorMessage, getLoginChallengeId, clearLoginChallengeId } from "@/lib/api/helper";
 import LoginTotpForm, {
   LoginTotpFormData,
 } from "@/components/auth/LoginTotpForm";
@@ -13,18 +13,22 @@ function LoginTotpPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
-
+  
+  const [cid, setCid] = useState<string | null>(null);
   const [formData, setFormData] = useState<LoginTotpFormData>({
     code: "",
   });
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
-    if (!email) {
-      toast.error("No email provided for TOTP verification.");
+    const storedCid = getLoginChallengeId();
+    if (!storedCid) {
+      toast.error("Invalid session. Please login again.");
       router.push("/login");
+    } else {
+      setCid(storedCid);
     }
-  }, [email, router]);
+  }, [router]);
 
   const updateField = (field: keyof LoginTotpFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -32,25 +36,31 @@ function LoginTotpPageContent() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!cid) {
+      toast.error("Invalid session. Please login again.");
+      router.push("/login");
+      return;
+    }
+
     setVerifying(true);
     try {
       const res = await loginTotp({
-        email,
+        cid,
         code: formData.code,
       });
 
       if ("accessToken" in res) {
         setAccessToken(res.accessToken);
         setCurrentUser(res.user);
+        clearLoginChallengeId();
         toast.success("Đăng nhập thành công!");
         router.push("/dashboard");
       } else {
         toast.error("Invalid credentials. Please try again.");
       }
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        "Sai mã TOTP hoặc đã hết hạn. Vui lòng thử lại.";
+      const msg = getErrorMessage(err, "Sai mã TOTP hoặc đã hết hạn. Vui lòng thử lại.");
       toast.error(msg);
     } finally {
       setVerifying(false);

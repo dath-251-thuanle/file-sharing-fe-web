@@ -2,6 +2,7 @@ import { User } from "@/lib/components/schemas";
 
 const ACCESS_TOKEN_KEY = "fs_access_token";
 const USER_KEY = "fs_user";
+const CID_KEY = "fs_login_cid";
 
 /**
  * Helpers: localStorage-safe (avoid SSR crash)
@@ -35,6 +36,19 @@ export function setAccessToken(token: string) {
 export function clearAuth() {
     safeRemoveItem(ACCESS_TOKEN_KEY);
     safeRemoveItem(USER_KEY);
+    safeRemoveItem(CID_KEY);
+}
+
+export function setLoginChallengeId(cid: string) {
+    safeSetItem(CID_KEY, cid);
+}
+
+export function getLoginChallengeId(): string | null {
+    return safeGetItem(CID_KEY);
+}
+
+export function clearLoginChallengeId() {
+    safeRemoveItem(CID_KEY);
 }
 
 export function getCurrentUser(): User | null {
@@ -61,6 +75,29 @@ export function _isAdmin(): boolean {
     const user = getCurrentUser();
     console.log(user);
     return user?.role === "admin";
+}
+
+export function getErrorMessage(error: any, defaultMessage: string = "An error occurred"): string {
+    if (!error) return defaultMessage;
+
+    if (typeof error === "string") return error;
+
+    // Axios error with response
+    if (error.response) {
+        const data = error.response.data;
+        // If data is simple string
+        if (typeof data === "string") return data;
+        
+        // If data is object
+        if (data && typeof data === "object") {
+            // Prioritize 'message' then 'error'
+            if (data.message) return data.message;
+            if (data.error) return data.error;
+        }
+    }
+
+    // Fallback to error message or default
+    return error.message || defaultMessage;
 }
 
 export function isFormData(value: unknown): value is FormData {

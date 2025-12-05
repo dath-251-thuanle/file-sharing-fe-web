@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { setupTotp, verifyTotp } from "@/lib/api/auth";
-import { getAccessToken } from "@/lib/api/helper";
+import { getAccessToken, getErrorMessage } from "@/lib/api/helper";
 import TotpSetupForm,{ TotpSetupFormData } from "@/components/auth/TotpSetupForm";
 
 export default function TotpSetupPage() {
@@ -39,9 +39,7 @@ export default function TotpSetupPage() {
         setSecret(data.totpSetup.secret);
         setError(null);
       } catch (err: any) {
-        const msg =
-          err?.response?.data?.message ||
-          "Failed to fetch TOTP setup information.";
+        const msg = getErrorMessage(err, "Failed to fetch TOTP setup information.");
         setError(msg);
         toast.error(msg);
       } finally {
@@ -66,8 +64,7 @@ export default function TotpSetupPage() {
         throw new Error(res.message || "Verification failed. Please try again.");
       }
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message || "Invalid TOTP code. Please try again.";
+      const msg = getErrorMessage(err, "Invalid TOTP code. Please try again.");
       setError(msg);
       toast.error(msg);
     }
