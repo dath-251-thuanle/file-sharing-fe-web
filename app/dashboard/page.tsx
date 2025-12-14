@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, File as FileType, UserResponse, UserFilesResponse } from "@/lib/components/schemas";
+import { User, File as FileType, UserResponse, UserFilesResponse, AvailableFile } from "@/lib/components/schemas";
 import { getUserProfile, disableTotp, changePassword } from "@/lib/api/auth";
-import { deleteFile, getUserFiles } from "@/lib/api/file";
-import { ShieldCheck, ShieldOff, Loader, KeyRound, Trash2 } from "lucide-react";
+import { deleteFile, getUserFiles, getAvailableFiles } from "@/lib/api/file";
+import { ShieldCheck, ShieldOff, Loader, KeyRound, Trash2, Link as LinkIcon } from "lucide-react";
 import { setCurrentUser } from "@/lib/api/helper";
 import { toast } from "sonner";
 import { ChangePasswordRequest } from "@/lib/components/schemas";
@@ -14,6 +14,7 @@ import { ChangePasswordRequest } from "@/lib/components/schemas";
 type DashboardProfileResponse = {
   user: User;
   files: FileType[];
+  availableFiles: AvailableFile[];
   summary: {
     activeFiles: number;
     pendingFiles: number;
@@ -21,6 +22,12 @@ type DashboardProfileResponse = {
     deletedFiles: number;
   };
   pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalFiles: number;
+    limit: number;
+  };
+  availableFilesPagination: {
     currentPage: number;
     totalPages: number;
     totalFiles: number;
@@ -57,6 +64,15 @@ export default function Dashboard() {
     limit: 20,
   });
 
+  const [currentAvailablePage, setCurrentAvailablePage] = useState(1);
+  const [availableFilesPagination, setAvailableFilesPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalFiles: 0,
+    limit: 10,
+  });
+
+
   const router = useRouter();
 
   useEffect(() => {
@@ -66,21 +82,30 @@ export default function Dashboard() {
         const userRes = await getUserProfile();
         setCurrentUser(userRes.user);
 
-        const filesRes = await getUserFiles({
-          status: statusFilter,
-          page: currentPage,
-          limit: pagination.limit,
-          sortBy,
-          order: sortOrder,
-        });
+        const [filesRes, availableFilesRes] = await Promise.all([
+            getUserFiles({
+                status: statusFilter,
+                page: currentPage,
+                limit: pagination.limit,
+                sortBy,
+                order: sortOrder,
+            }),
+            getAvailableFiles({
+                page: currentAvailablePage,
+                limit: availableFilesPagination.limit,
+            })
+        ]);
         
         setUserProfile({
           user: userRes.user,
           files: filesRes.files,
+          availableFiles: availableFilesRes.files,
           summary: filesRes.summary,
           pagination: filesRes.pagination,
+          availableFilesPagination: availableFilesRes.pagination,
         });
         setPagination(filesRes.pagination);
+        setAvailableFilesPagination(availableFilesRes.pagination);
 
       } catch (err: any) {
         if (err.message.includes("Unauthorized")) {
@@ -94,7 +119,7 @@ export default function Dashboard() {
     };
 
     fetchProfileAndFiles();
-  }, [router, statusFilter, sortBy, sortOrder, currentPage, pagination.limit]);
+  }, [router, statusFilter, sortBy, sortOrder, currentPage, pagination.limit, currentAvailablePage, availableFilesPagination.limit]);
 
   const handleDisableTotp = async () => {
     if (!totpCode) {
@@ -107,13 +132,9 @@ export default function Dashboard() {
       // Refresh profile to show updated TOTP status
       const userRes = await getUserProfile();
       setUserProfile((prev) => {
-        const base = prev ? { ...prev } : {
-          files: [],
-          summary: { activeFiles: 0, pendingFiles: 0, expiredFiles: 0, deletedFiles: 0 },
-          pagination: { currentPage: 1, totalPages: 1, totalFiles: 0, limit: 20 },
-        };
+        if (!prev) return null;
         return {
-          ...base,
+          ...prev,
           user: userRes.user,
         };
       });
@@ -200,7 +221,7 @@ export default function Dashboard() {
     return null; // or a fallback UI
   }
 
-  const { user, files, summary } = userProfile;
+  const { user, files, availableFiles, summary } = userProfile;
 
   return (
     <div className="container mx-auto p-4 sm:p-6">
@@ -277,7 +298,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">Your Files</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
             <div className="p-4 bg-blue-100 rounded-lg">
@@ -408,6 +429,82 @@ export default function Dashboard() {
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === pagination.totalPages}
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
+              >
+                Next
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h2 className="text-xl font-bold mb-4">Shared with You</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">File Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {availableFiles && availableFiles.length > 0 ? (
+                availableFiles.map((file) => (
+                  <tr key={file.fileid}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        {file.haspassword ? '🔒 ' : ''}
+                        {file.filename}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {file.owner || "Anonymous"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <Link href={`/f/${file.sharetoken}`} className="text-indigo-600 hover:text-indigo-900 inline-flex items-center">
+                        <LinkIcon className="h-4 w-4 mr-1" />
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="px-6 py-4 text-center text-sm text-gray-500">No files shared with you.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-4 flex justify-between items-center">
+          <div>
+            <p className="text-sm text-gray-700">
+              Showing <span className="font-medium">{(currentAvailablePage - 1) * availableFilesPagination.limit + 1}</span> to <span className="font-medium">{Math.min(currentAvailablePage * availableFilesPagination.limit, availableFilesPagination.totalFiles)}</span> of{' '}
+              <span className="font-medium">{availableFilesPagination.totalFiles}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <button
+                onClick={() => setCurrentAvailablePage(currentAvailablePage - 1)}
+                disabled={currentAvailablePage === 1}
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
+              >
+                Previous
+              </button>
+              {Array.from({ length: availableFilesPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentAvailablePage(page)}
+                  className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentAvailablePage === page ? 'text-indigo-600 bg-indigo-50' : 'text-gray-700 hover:bg-gray-50'}`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentAvailablePage(currentAvailablePage + 1)}
+                disabled={currentAvailablePage === availableFilesPagination.totalPages}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Next

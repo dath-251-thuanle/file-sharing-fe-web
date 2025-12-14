@@ -212,3 +212,21 @@ export interface FileInfo {
     availableTo?: string;
     createdAt?: string;
 }
+
+export interface AvailableFile {
+  fileid: string;
+  filename: string;
+  owner: string | null;
+  haspassword: boolean;
+  sharetoken: string;
+}
+
+export interface AvailableFilesResponse {
+  files: AvailableFile[];
+  pagination: {
+    currentPage: number;
+    limit: number;
+    totalFiles: number;
+    totalPages: number;
+  };
+}

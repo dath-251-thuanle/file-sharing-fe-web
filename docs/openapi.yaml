@@ -570,7 +570,7 @@ paths:
         - Files
       summary: Xem các file có thể tải về
       description: |
-        Trả về danh sách các file công khai hoặc, chia sẻ tới người dùng,
+        Trả về danh sách các file được chia sẻ tới người dùng,
         hoặc thuộc sở hữu của người dùng, với điều kiện là file còn mở và chưa hết hạn.
 
         API không yêu cầu authentication.
