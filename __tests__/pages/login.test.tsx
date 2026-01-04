@@ -1,0 +1,81 @@
+import React from 'react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import LoginPage from '@/app/(auth)/login/page'
+import { login } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+
+// Mock dependencies
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+}))
+jest.mock('@/lib/api/auth')
+jest.mock('sonner')
+jest.mock('@/lib/api/helper', () => ({
+  setAccessToken: jest.fn(),
+  setCurrentUser: jest.fn(),
+  setLoginChallengeId: jest.fn(),
+  getErrorMessage: jest.fn((err) => err.message || 'Error'),
+}))
+
+describe('LoginPage', () => {
+  const mockRouter = { push: jest.fn() }
+  
+  beforeEach(() => {
+    (useRouter as jest.Mock).mockReturnValue(mockRouter)
+    jest.clearAllMocks()
+  })
+
+  it('handles successful login', async () => {
+    (login as jest.Mock).mockResolvedValue({
+      accessToken: 'fake-token',
+      user: { id: 1, username: 'test' }
+    })
+
+    render(<LoginPage />)
+
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Mật khẩu'), { target: { value: 'password' } })
+    
+    fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }))
+
+    await waitFor(() => {
+      expect(login).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password'
+      })
+      expect(mockRouter.push).toHaveBeenCalledWith('/dashboard')
+      expect(toast.success).toHaveBeenCalledWith('Đăng nhập thành công!')
+    })
+  })
+
+  it('handles TOTP requirement', async () => {
+    (login as jest.Mock).mockResolvedValue({
+      requireTOTP: true,
+      cid: 'challenge-id'
+    })
+
+    render(<LoginPage />)
+
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Mật khẩu'), { target: { value: 'password' } })
+    
+    fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }))
+
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(expect.stringContaining('/login/totp'))
+    })
+  })
+
+  it('handles login failure', async () => {
+    (login as jest.Mock).mockRejectedValue(new Error('Login failed'))
+
+    render(<LoginPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Login failed')
+    })
+  })
+})
