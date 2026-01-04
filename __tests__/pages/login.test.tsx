@@ -1,9 +1,10 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import LoginPage from '@/app/(auth)/login/page'
 import { login } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { navigateTo } from '@/lib/utils/navigation'
 
 // Mock dependencies
 jest.mock('next/navigation', () => ({
@@ -11,6 +12,9 @@ jest.mock('next/navigation', () => ({
 }))
 jest.mock('@/lib/api/auth')
 jest.mock('sonner')
+jest.mock('@/lib/utils/navigation', () => ({
+  navigateTo: jest.fn(),
+}))
 jest.mock('@/lib/api/helper', () => ({
   setAccessToken: jest.fn(),
   setCurrentUser: jest.fn(),
@@ -44,7 +48,7 @@ describe('LoginPage', () => {
         email: 'test@example.com',
         password: 'password'
       })
-      expect(mockRouter.push).toHaveBeenCalledWith('/dashboard')
+      expect(navigateTo).toHaveBeenCalledWith('/dashboard')
       expect(toast.success).toHaveBeenCalledWith('Đăng nhập thành công!')
     })
   })
@@ -72,6 +76,9 @@ describe('LoginPage', () => {
 
     render(<LoginPage />)
 
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'wrong@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('Mật khẩu'), { target: { value: 'password' } })
+    
     fireEvent.click(screen.getByRole('button', { name: /đăng nhập/i }))
 
     await waitFor(() => {

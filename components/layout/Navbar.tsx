@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { HardDrive } from "lucide-react";
 import { _isAdmin, _isLoggedIn } from "@/lib/api/helper";
 import { logout } from "@/lib/api/auth";
+import { navigateTo } from '@/lib/utils/navigation'
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -33,7 +34,7 @@ export default function Navbar() {
     logout();
     setIsLoggedIn(false);
     setIsAdmin(false);
-    window.location.href = "/login";
+    navigateTo("/login");
   };
 
   return (
