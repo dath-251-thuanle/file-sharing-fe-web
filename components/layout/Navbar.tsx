@@ -33,7 +33,7 @@ export default function Navbar() {
     logout();
     setIsLoggedIn(false);
     setIsAdmin(false);
-    router.push("/login");
+    window.location.href = "/login";
   };
 
   return (

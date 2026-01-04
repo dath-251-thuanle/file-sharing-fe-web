@@ -412,7 +412,7 @@ export default function Dashboard() {
             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
               <button
                 onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
+                disabled={currentPage <= 1}
                 className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Previous
@@ -428,7 +428,7 @@ export default function Dashboard() {
               ))}
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === pagination.totalPages}
+                disabled={currentPage >= pagination.totalPages}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Next
@@ -488,7 +488,7 @@ export default function Dashboard() {
             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
               <button
                 onClick={() => setCurrentAvailablePage(currentAvailablePage - 1)}
-                disabled={currentAvailablePage === 1}
+                disabled={currentAvailablePage <= 1}
                 className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Previous
@@ -504,7 +504,7 @@ export default function Dashboard() {
               ))}
               <button
                 onClick={() => setCurrentAvailablePage(currentAvailablePage + 1)}
-                disabled={currentAvailablePage === availableFilesPagination.totalPages}
+                disabled={currentAvailablePage >= availableFilesPagination.totalPages}
                 className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:bg-gray-100"
               >
                 Next

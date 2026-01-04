@@ -55,7 +55,7 @@ function LoginTotpPageContent() {
         setCurrentUser(res.user);
         clearLoginChallengeId();
         toast.success("Đăng nhập thành công!");
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
       } else {
         toast.error("Invalid credentials. Please try again.");
       }

@@ -35,7 +35,7 @@ export default function LoginPage() {
                     setAccessToken(res.accessToken);
                     setCurrentUser(res.user);
                     toast.success("Đăng nhập thành công!");
-                    router.push("/dashboard");
+                    window.location.href = "/dashboard";
                 }
                 else {
                     toast.error("Sai thông tin đăng nhập. Vui lòng thử lại.");
