@@ -77,7 +77,10 @@ describe('Upload Page', () => {
     // <div className="flex-1">...<Lock /> Bảo vệ bằng mật khẩu...</label> ... <button ... onClick={setPasswordEnabled} ...>
     
     // We can use the text to find the container, then the button.
-    const passwordLabel = screen.getByText('Bảo vệ bằng mật khẩu');
+    const passwordLabels = screen.getAllByText('Bảo vệ bằng mật khẩu');
+    // The second one is likely the form label (first is summary header)
+    const passwordLabel = passwordLabels[1]; 
+    
     // The button is a sibling of the parent div's parent div? No, flex container.
     // Container: flex items-start justify-between
     //   Div (flex-1) -> Label
