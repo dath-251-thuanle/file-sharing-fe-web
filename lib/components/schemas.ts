@@ -30,7 +30,6 @@ export type File = {
   status: FileStatus;
   hoursRemaining?: number;
   sharedWith?: string[];
-  totpEnabled: boolean;
   owner: User;
   createdAt: string;
 };
@@ -113,7 +112,6 @@ export interface UploadedFileSummary {
   availableTo?: string;
   sharedWith?: string[];
   expiresAt?: string;
-  totpEnabled?: boolean;
 }
 
 export interface FileUploadRequest {
@@ -123,13 +121,11 @@ export interface FileUploadRequest {
   availableFrom?: string;
   availableTo?: string;
   sharedWith?: string[];
-  enableTOTP?: boolean;
 }
 
 export interface FileUploadResponse {
   success?: boolean;
   file: UploadedFileSummary;
-  totpSetup?: TOTPSetup;
   message?: string;
 }
 

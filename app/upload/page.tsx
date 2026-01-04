@@ -53,7 +53,6 @@ export default function UploadPage() {
 	const [availableTo, setAvailableTo] = useState("");
 	const [sharedWithInput, setSharedWithInput] = useState("");
 	const [sharedWith, setSharedWith] = useState<string[]>([]);
-	const [enableTOTP, setEnableTOTP] = useState(false);
 	const [isPublicFile, setIsPublicFile] = useState(true);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,7 +83,6 @@ export default function UploadPage() {
 		setAvailableTo("");
 		setSharedWithInput("");
 		setSharedWith([]);
-		setEnableTOTP(false);
 		setIsPublicFile(true);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
@@ -197,8 +195,6 @@ export default function UploadPage() {
 			sharedWith.forEach((email) => formData.append("sharedWith", email));
 		}
 
-		formData.append("enableTOTP", String(enableTOTP));
-
 		// Nếu bật mật khẩu hoặc chia sẻ riêng, luôn chuyển về riêng tư dù người dùng chọn công khai.
 		const effectiveIsPublic = isPublicFile && !passwordEnabled && sharedWith.length === 0;
 		formData.append("isPublic", String(effectiveIsPublic));
@@ -292,7 +288,7 @@ export default function UploadPage() {
 					<div className="hidden sm:flex flex-col gap-3 text-sm text-gray-500">
 						<div className="flex items-center gap-2">
 							<ShieldCheck className="w-4 h-4 text-green-600" />
-							Bảo vệ bằng mật khẩu/TOTP
+							Bảo vệ bằng mật khẩu
 						</div>
 						<div className="flex items-center gap-2">
 							<Clock4 className="w-4 h-4 text-blue-600" />
@@ -416,7 +412,7 @@ export default function UploadPage() {
 										</button>
 									</div>
 									<p className="text-sm text-gray-500 flex items-center">
-										Nên kết hợp với Enable TOTP để tăng bảo mật.
+										Nên đặt mật khẩu đủ mạnh để tăng bảo mật.
 									</p>
 								</div>
 							)}
@@ -495,21 +491,7 @@ export default function UploadPage() {
 								)}
 							</div>
 
-							<label className="flex items-center justify-between gap-6 rounded-2xl border border-gray-200 px-4 py-4">
-								<div className="flex items-center gap-3">
-									<ShieldCheck className="w-5 h-5 text-blue-600" />
-									<div>
-										<p className="text-sm font-medium text-gray-900">Enable TOTP cho file này</p>
-										<p className="text-xs text-gray-500">Yêu cầu mã OTP khi người nhận tải xuống, áp dụng cùng mật khẩu để tăng bảo mật.</p>
-									</div>
-								</div>
-								<input
-									type="checkbox"
-									checked={enableTOTP}
-									onChange={(event) => setEnableTOTP(event.target.checked)}
-									className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-								/>
-							</label>
+							
 						</div>
 					</section>
 
@@ -537,9 +519,7 @@ export default function UploadPage() {
 									{uploadResult.message && (
 										<p className="mt-1 text-sm text-green-600">{uploadResult.message}</p>
 									)}
-									<p className="mt-2 text-sm text-green-600">
-										Chia sẻ thông tin bên dưới cho người nhận và lưu ý bảo mật mật khẩu/TOTP nếu bạn đã bật.
-									</p>
+									<p className="mt-2 text-sm text-green-600">Chia sẻ thông tin bên dưới cho người nhận và lưu ý bảo mật mật khẩu nếu bạn đã đặt.</p>
 									{uploadResult.file?.fileName && (
 										<p className="mt-2 text-xs text-green-700">
 											File: <span className="font-medium">{uploadResult.file.fileName}</span>
@@ -568,28 +548,6 @@ export default function UploadPage() {
 								</button>
 							)}
 						</div>
-						{uploadResult.totpSetup && (
-							<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-								<div>
-									<p className="text-sm font-semibold text-green-700">TOTP được bật cho file này</p>
-									<p className="mt-1 text-xs text-green-600">
-										Quét QR hoặc nhập secret bên dưới vào ứng dụng Google Authenticator/Authy, sau đó cung cấp mã TOTP cho người cần tải.
-									</p>
-									<div className="mt-3 rounded-lg bg-white px-4 py-3 text-xs text-gray-700 border border-green-100 break-all font-mono">
-										Secret: {uploadResult.totpSetup.secret}
-									</div>
-								</div>
-								{uploadResult.totpSetup.qrCode && (
-									<div className="flex justify-center">
-										<img
-											src={uploadResult.totpSetup.qrCode}
-											alt="QR code TOTP"
-											className="h-32 w-32 rounded-xl border border-green-200 bg-white p-2 shadow-sm"
-										/>
-									</div>
-								)}
-							</div>
-						)}
 					</div>
 				)}
 			</div>

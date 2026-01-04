@@ -1,5 +1,5 @@
 import { uploadClient, adminClient } from "@/lib/api/client";
-import type { FileUploadResponse, UploadedFileSummary, TOTPSetup, UserFilesResponse, AvailableFilesResponse } from "@/lib/components/schemas";
+import type { FileUploadResponse, UploadedFileSummary, UserFilesResponse, AvailableFilesResponse } from "@/lib/components/schemas";
 
 export class ApiError extends Error {
   status: number;
@@ -38,7 +38,6 @@ type ModernUploadResponse = {
   success?: boolean;
   message?: string;
   file?: Partial<UploadedFileSummary>;
-  totpSetup?: TOTPSetup;
 };
 
 function isModernUploadResponse(payload: unknown): payload is ModernUploadResponse {
@@ -62,7 +61,6 @@ function toUploadedFileSummary(data: Partial<UploadedFileSummary>): UploadedFile
     availableTo: data.availableTo,
     sharedWith: data.sharedWith,
     expiresAt: data.expiresAt,
-    totpEnabled: data.totpEnabled,
   };
 }
 
@@ -72,7 +70,6 @@ function toUploadFileResponse(raw: unknown): FileUploadResponse {
       success: raw.success ?? true,
       message: raw.message,
       file: toUploadedFileSummary(raw.file ?? {}),
-      totpSetup: raw.totpSetup,
     };
   }
 
