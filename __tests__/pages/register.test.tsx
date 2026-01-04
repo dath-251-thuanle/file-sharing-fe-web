@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import RegisterPage from '@/app/(auth)/register/page'
 import { register } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
@@ -49,6 +49,9 @@ describe('RegisterPage', () => {
   it('shows error when passwords do not match', async () => {
     render(<RegisterPage />)
 
+    // Fill all required fields
+    fireEvent.change(screen.getByPlaceholderText('Tên đăng nhập'), { target: { value: 'user1' } })
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Mật khẩu'), { target: { value: 'password' } })
     fireEvent.change(screen.getByPlaceholderText('Xác nhận mật khẩu'), { target: { value: 'different' } })
     
@@ -65,6 +68,9 @@ describe('RegisterPage', () => {
 
     render(<RegisterPage />)
 
+    // Fill all required fields
+    fireEvent.change(screen.getByPlaceholderText('Tên đăng nhập'), { target: { value: 'user1' } })
+    fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@example.com' } })
     fireEvent.change(screen.getByPlaceholderText('Mật khẩu'), { target: { value: 'password' } })
     fireEvent.change(screen.getByPlaceholderText('Xác nhận mật khẩu'), { target: { value: 'password' } })
 

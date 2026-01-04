@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import { Alert } from "@/components/ui/Alert";
+import { navigateTo } from '@/lib/utils/navigation'
 
 export default function Page() {
     const params = useParams();
@@ -296,7 +297,7 @@ export default function Page() {
             if (err.message === "AUTH_REQUIRED") {
                 setError("Yêu cầu đăng nhập. File này chỉ chia sẻ với một số người dùng cụ thể.");
                 setTimeout(() => {
-                    window.location.href = `/login?redirect=/f/${token}`;
+                    navigateTo(`/login?redirect=/f/${token}`);
                 }, 2000);
             } else {
                 setError(err.message);

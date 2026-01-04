@@ -8,6 +8,7 @@ import { setAccessToken, setCurrentUser, getErrorMessage, getLoginChallengeId, c
 import LoginTotpForm, {
   LoginTotpFormData,
 } from "@/components/auth/LoginTotpForm";
+import { navigateTo } from "@/lib/utils/navigation";
 
 function LoginTotpPageContent() {
   const router = useRouter();
@@ -55,7 +56,7 @@ function LoginTotpPageContent() {
         setCurrentUser(res.user);
         clearLoginChallengeId();
         toast.success("Đăng nhập thành công!");
-        window.location.href = "/dashboard";
+        navigateTo("/dashboard");
       } else {
         toast.error("Invalid credentials. Please try again.");
       }

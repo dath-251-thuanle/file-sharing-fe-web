@@ -7,6 +7,7 @@ import axios, {
 } from "axios";
 import { toast } from "sonner";
 import { getAccessToken, clearAuth } from "@/lib/api/helper";
+import { navigateTo } from '@/lib/utils/navigation'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
 const DEFAULT_TIMEOUT = 15000; // 15s for normal requests
@@ -55,7 +56,7 @@ const errorResponseInterceptor = (error: AxiosError<ErrorResponse>) => {
       // Token expired handling
       clearAuth();
       toast.error("Session expired. Please login again.");
-      window.location.href = "/login";
+      navigateTo("/login");
     } else if (status === 403) {
       toast.error(data?.message || "Access denied.");
     } else if (status === 413) {

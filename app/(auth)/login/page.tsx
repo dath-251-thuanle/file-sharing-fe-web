@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { login } from "@/lib/api/auth";
 import { setAccessToken, setCurrentUser, getErrorMessage, setLoginChallengeId } from "@/lib/api/helper";
+import { navigateTo } from "@/lib/utils/navigation";
 import LoginForm, { LoginFormData } from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
@@ -35,7 +36,7 @@ export default function LoginPage() {
                     setAccessToken(res.accessToken);
                     setCurrentUser(res.user);
                     toast.success("Đăng nhập thành công!");
-                    window.location.href = "/dashboard";
+                    navigateTo("/dashboard");
                 }
                 else {
                     toast.error("Sai thông tin đăng nhập. Vui lòng thử lại.");
