@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 jest.mock('@/lib/api/admin')
 jest.mock('sonner')
 
-describe('CleanupButton', () => {
+function testCleanupSuccess() {
     it('handles cleanup success', async () => {
         (adminApi.cleanupExpiredFiles as jest.Mock).mockResolvedValue({
             message: 'Cleanup successful',
@@ -17,7 +17,8 @@ describe('CleanupButton', () => {
 
         render(<CleanupButton />);
         
-        fireEvent.click(screen.getByText('Cleanup file hết hạn'));
+        const button = screen.getByText('Cleanup file hết hạn');
+        fireEvent.click(button);
         
         expect(screen.getByText('Đang cleanup...')).toBeInTheDocument();
 
@@ -27,7 +28,9 @@ describe('CleanupButton', () => {
             expect(screen.getByText('Cleanup file hết hạn')).toBeInTheDocument();
         });
     })
+}
 
+function testCleanupFailure() {
     it('handles cleanup failure', async () => {
         (adminApi.cleanupExpiredFiles as jest.Mock).mockRejectedValue(new Error('Failed'));
 
@@ -37,6 +40,16 @@ describe('CleanupButton', () => {
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalled();
+            expect(screen.getByText('Cleanup file hết hạn')).toBeInTheDocument();
         });
     })
+}
+
+describe('CleanupButton', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    testCleanupSuccess();
+    testCleanupFailure();
 })
