@@ -6,14 +6,12 @@ import { adminApi } from '@/lib/api/admin'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-// Mock dependencies
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }))
 jest.mock('@/lib/api/admin')
 jest.mock('sonner')
-// Mock AdminShell to avoid rendering complex layout issues, 
-// just render children.
+
 jest.mock('@/components/admin/AdminShell', () => ({
     AdminShell: ({ children, title }: { children: React.ReactNode, title: string }) => (
         <div data-testid="admin-shell">
@@ -22,7 +20,7 @@ jest.mock('@/components/admin/AdminShell', () => ({
         </div>
     )
 }))
-// Mock NumberField as simple input
+
 jest.mock('@/components/admin/NumberField', () => ({
     NumberField: ({ label, value, onChange }: any) => (
         <label>
@@ -31,74 +29,78 @@ jest.mock('@/components/admin/NumberField', () => ({
         </label>
     )
 }))
-// Mock CleanupButton for Policy Page test (it is used there)
+
 jest.mock('@/components/admin/CleanupButton', () => ({
     CleanupButton: ({ variant }: any) => <button>Cleanup Button</button>
 }))
 
-describe('Admin Policy Page', () => {
-  const mockPolicy = {
+const mockPolicy = {
     maxFileSizeMB: 50,
     minValidityHours: 1,
     maxValidityDays: 7,
     defaultValidityDays: 1,
     requirePasswordMinLength: 6
-  };
+};
 
+function testPolicyLoading() {
+    it('renders loading state initially', () => {
+        (adminApi.getPolicy as jest.Mock).mockReturnValue(new Promise(() => {}));
+        render(<AdminPolicyPage />);
+        expect(screen.getByText('Đang tải System Policy...')).toBeInTheDocument();
+    })
+}
+
+function testPolicyFormRendering() {
+    it('renders policy form with data', async () => {
+        (adminApi.getPolicy as jest.Mock).mockResolvedValue(mockPolicy);
+
+        render(<AdminPolicyPage />);
+
+        await waitFor(() => {
+            expect(screen.getByText('System Policy')).toBeInTheDocument();
+            expect(screen.getByLabelText(/Max file size/i)).toHaveValue(50);
+            expect(screen.getByLabelText(/Max validity/i)).toHaveValue(7);
+        });
+    })
+}
+
+function testPolicyUpdate() {
+    it('updates policy successfully', async () => {
+        (adminApi.getPolicy as jest.Mock).mockResolvedValue(mockPolicy);
+        (adminApi.updatePolicy as jest.Mock).mockResolvedValue({
+            success: true,
+            message: 'Updated',
+            policy: { ...mockPolicy, maxFileSizeMB: 100 }
+        });
+
+        render(<AdminPolicyPage />);
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Max file size/i)).toHaveValue(50);
+        });
+
+        fireEvent.change(screen.getByLabelText(/Max file size/i), { target: { value: '100' } });
+        fireEvent.click(screen.getByText('Lưu System Policy'));
+
+        await waitFor(() => {
+            expect(adminApi.updatePolicy).toHaveBeenCalledWith(expect.objectContaining({ maxFileSizeMB: 100 }));
+            expect(toast.success).toHaveBeenCalledWith('Updated');
+        });
+    })
+}
+
+describe('Admin Policy Page', () => {
   beforeEach(() => {
     (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
     jest.clearAllMocks();
   })
 
-  it('renders loading state initially', () => {
-    (adminApi.getPolicy as jest.Mock).mockReturnValue(new Promise(() => {}));
-    render(<AdminPolicyPage />);
-    expect(screen.getByText('Đang tải System Policy...')).toBeInTheDocument();
-  })
-
-  it('renders policy form with data', async () => {
-    (adminApi.getPolicy as jest.Mock).mockResolvedValue(mockPolicy);
-
-    render(<AdminPolicyPage />);
-
-    await waitFor(() => {
-        expect(screen.getByText('System Policy')).toBeInTheDocument();
-        // Check input values (finding by label text mock)
-        expect(screen.getByLabelText(/Max file size/i)).toHaveValue(50);
-        expect(screen.getByLabelText(/Max validity/i)).toHaveValue(7);
-    });
-  })
-
-  it('updates policy successfully', async () => {
-    (adminApi.getPolicy as jest.Mock).mockResolvedValue(mockPolicy);
-    (adminApi.updatePolicy as jest.Mock).mockResolvedValue({
-        success: true,
-        message: 'Updated',
-        policy: { ...mockPolicy, maxFileSizeMB: 100 }
-    });
-
-    render(<AdminPolicyPage />);
-
-    await waitFor(() => {
-        expect(screen.getByLabelText(/Max file size/i)).toHaveValue(50);
-    });
-
-    fireEvent.change(screen.getByLabelText(/Max file size/i), { target: { value: '100' } });
-    fireEvent.click(screen.getByText('Lưu System Policy'));
-
-    await waitFor(() => {
-        expect(adminApi.updatePolicy).toHaveBeenCalledWith(expect.objectContaining({ maxFileSizeMB: 100 }));
-        expect(toast.success).toHaveBeenCalledWith('Updated');
-    });
-  })
+  testPolicyLoading()
+  testPolicyFormRendering()
+  testPolicyUpdate()
 })
 
 describe('Admin Cleanup Page', () => {
-    // We need to unmock CleanupButton or mock it to have functionality we can test.
-    // However, AdminCleanupPage uses CleanupButton component which contains the logic.
-    // So we should probably test CleanupButton component separately or integration test the page.
-    // Let's rely on the mock for now to just check page rendering.
-    
     it('renders cleanup page content', () => {
         render(<AdminCleanupPage />);
         expect(screen.getByText('Cleanup file hết hạn')).toBeInTheDocument();
