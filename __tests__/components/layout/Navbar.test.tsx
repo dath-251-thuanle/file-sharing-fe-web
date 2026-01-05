@@ -25,47 +25,46 @@ jest.mock('@/lib/utils/navigation', () => ({
     navigateTo: jest.fn(),
 }))
 
-describe('Navbar Component', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    })
-
+function testNavBarGuestLinks() {
     it('renders guest links when not logged in', () => {
         (_isLoggedIn as jest.Mock).mockReturnValue(false);
         (_isAdmin as jest.Mock).mockReturnValue(false);
 
         render(<Navbar />);
-
         expect(screen.getByText('SecureShare')).toBeInTheDocument();
         expect(screen.getByText('Upload Mới')).toBeInTheDocument();
         expect(screen.getByText('Đăng nhập')).toBeInTheDocument();
         expect(screen.getByText('Đăng ký')).toBeInTheDocument();
         expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
         expect(screen.queryByText('Logout')).not.toBeInTheDocument();
-    })
+    });
+}
 
+function testNavBarUserLinks() {
     it('renders user links when logged in', () => {
         (_isLoggedIn as jest.Mock).mockReturnValue(true);
         (_isAdmin as jest.Mock).mockReturnValue(false);
 
         render(<Navbar />);
-
         expect(screen.getByText('Dashboard')).toBeInTheDocument();
         expect(screen.getByText('Logout')).toBeInTheDocument();
         expect(screen.queryByText('Đăng nhập')).not.toBeInTheDocument();
         expect(screen.queryByText('Admin Dashboard')).not.toBeInTheDocument();
-    })
+    });
+}
 
+function testNavBarAdminLink() {
     it('renders admin link when logged in as admin', () => {
         (_isLoggedIn as jest.Mock).mockReturnValue(true);
         (_isAdmin as jest.Mock).mockReturnValue(true);
 
         render(<Navbar />);
-
         expect(screen.getByText('Admin Dashboard')).toBeInTheDocument();
         expect(screen.getByText('Admin Dashboard')).toHaveAttribute('href', '/admin');
-    })
+    });
+}
 
+function testLogoutFunctionality() {
     it('handles logout', () => {
         (_isLoggedIn as jest.Mock).mockReturnValue(true);
         render(<Navbar />);
@@ -74,5 +73,16 @@ describe('Navbar Component', () => {
 
         expect(logout).toHaveBeenCalled();
         expect(navigateTo).toHaveBeenCalledWith('/login');
+    });
+}
+
+describe('Navbar Component', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
     })
+
+    testNavBarGuestLinks();
+    testNavBarUserLinks();
+    testNavBarAdminLink();
+    testLogoutFunctionality();
 })
