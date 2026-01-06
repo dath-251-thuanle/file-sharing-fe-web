@@ -8,8 +8,9 @@ import axios, {
 import { toast } from "sonner";
 import { getAccessToken, clearAuth } from "@/lib/api/helper";
 import { navigateTo } from '@/lib/utils/navigation'
+import { getApiBaseUrl } from './config';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080/api";
+const BASE_URL = getApiBaseUrl();
 const DEFAULT_TIMEOUT = 15000; // 15s for normal requests
 const UPLOAD_TIMEOUT = 10 * 60 * 1000; // 10 Minutes for large files [cite: 361, 373]
 

@@ -1,8 +1,9 @@
 import axios from "axios";
 import type { FileInfo } from "@/lib/components/schemas";
 import { getAccessToken } from "./helper";
+import { getApiBaseUrl } from "./config";
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+const apiBase = getApiBaseUrl();
 
 /*
  * Lấy thông tin file theo share token
