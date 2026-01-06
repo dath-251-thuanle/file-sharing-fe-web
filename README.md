@@ -8,7 +8,7 @@ Frontend sẽ tương tác chặt chẽ với Backend API để xử lý các ng
 
 ### Tech Stack
 
-  * **Framework:** Next.js 14+ (App Router)
+  * **Framework:** Next.js 16 (App Router)
   * **Language:** TypeScript
   * **Styling:** Tailwind CSS
   * **State Management:** React Hooks / Context API
@@ -86,7 +86,6 @@ Mọi người **BẮT BUỘC** phải xử lý các mã lỗi HTTP đặc thù 
 Sử dụng prefix rõ ràng để biết commit thuộc về  module nào:
 
   * `auth: ...` (Bảo Minh)
-  * `dash: ...` (Minh Quan)
   * `upload: ...` (Khánh)
   * `access: ...` (Minh Thức)
   * `admin: ...` (Trung Kiên)
