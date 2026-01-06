@@ -32,7 +32,7 @@ Bạn Minh Quân xin rút khỏi nhóm.
 
 -----
 
-## 📂 Cấu Trúc Thư Mục (App Router)
+## Cấu Trúc Thư Mục (App Router)
 
 Để đảm bảo code gọn gàng và dễ merge, thống nhất cấu trúc như sau:
 
