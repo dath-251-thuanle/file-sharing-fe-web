@@ -108,7 +108,7 @@ Ví dụ:
     npm install
     ```
 3.  **Setup Environment:** (Setup later)
-    Tạo file `.env.local`:
+    Tạo file `.env`:
     ```env
     NEXT_PUBLIC_API_URL=http://localhost:8080/api
     ```
@@ -116,13 +116,21 @@ Ví dụ:
     ```bash
     npm run dev
     ```
-## Usage for Docker
+## Usage for Docker 
+
+To specify the backend api, you can update NEXT_PUBLIC_API_URL in the .env
+
+### Developing
 
 ```bash
-docker compose up -d
+docker compose up --build -d
+```
+### Production
+
+```bash
+docker compose -f docker-compose.prod.yaml up --build -d
 ```
 
-To specify the backend api, you can update NEXT_PUBLIC_API_URL in the docker-compose.yaml
 
 ## Notes
 - Should factor to components
