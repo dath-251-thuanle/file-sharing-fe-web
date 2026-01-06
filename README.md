@@ -39,7 +39,9 @@ Bạn Minh Quân xin rút khỏi nhóm.
 ```bash
 app/
 ├── (auth)/                 # Route Group cho Authentication (Bảo Minh)
-│   ├── login/page.tsx
+│   ├── login
+│   │   ├── page.tsx
+│   │   └── totp/page.tsx
 │   ├── register/page.tsx
 │   └── totp-setup
 │       ├── page.tsx
@@ -57,6 +59,7 @@ app/
 │   └── layout.tsx
 ├── upload/                 # Upload Page (Khánh)
 │   └── page.tsx
+├── globals.css
 ├── layout.tsx              # Root Layout
 └── page.tsx                # Homepage
 ```
