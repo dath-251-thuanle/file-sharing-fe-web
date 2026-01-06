@@ -20,15 +20,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.__ENV = {
-                NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL || ''}"
-              };
-            `,
-          }}
-        />
+        <script src="/env-config.js"></script>
       </head>
       <body
         className={`${inter.className} min-h-screen flex flex-col antialiased bg-gray-50 text-gray-900`}

@@ -46,8 +46,6 @@ jobs:
             context: .
             dockerfile: frontend.Dockerfile
             image_suffix: -frontend
-            build-args: |
-              NEXT_PUBLIC_API_URL=/api
 
     steps:
       - name: Checkout repository
